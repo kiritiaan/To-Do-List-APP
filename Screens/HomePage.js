@@ -3,14 +3,16 @@ import { StyleSheet, View, Text, Image, TouchableOpacity, TextInput, ScrollView 
 import { addDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, Auth } from '../Firebase';
 import Post from './Post';
-import  {globalStyle}  from './styles/styles';
+import { globalStyle } from './styles/styles';
 import LoadingScreen from './LoadingScreen';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Home = ({navigation}) => {
+const Home = ({ navigation }) => {
   const [postText, setPostText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
 
+  
   async function handlePost() {
 
     try {
@@ -59,36 +61,36 @@ const Home = ({navigation}) => {
   return (
     <View style={globalStyle.container}>
       <View style={globalStyle.header}>
-        <Image
-          source={require('../assets/favicon.png')}
-          style={globalStyle.logo}
-        />
+        <Image source={require('../assets/favicon.png')} style={globalStyle.logo} />
         <Text style={globalStyle.title}>Faceless Notebook</Text>
       </View>
       <ScrollView style={globalStyle.feed} showsVerticalScrollIndicator={false}>
-      <View style={globalStyle.postContainer}>
-        <TextInput
-          style={globalStyle.input}
-          placeholder="What's on your mind?"
-          value={postText}
-          onChangeText={setPostText}
-        />
-        <TouchableOpacity style={globalStyle.postButton} onPress={handlePost}>
-          <Text style={globalStyle.postButtonText}>Post</Text>
-        </TouchableOpacity>
-      </View>
-      {
-        data && data.length > 0 ? (
-          
-        data?.map((post, index) => {
-          return (<View key={index}><Post postId={post.id}/></View>)
-        })
-        ): 
-        <View style={globalStyle.center}>
-          <Text style={globalStyle.text}>No Posts Found</Text>
+        <View style={globalStyle.postContainer}>
+          <TextInput
+            style={globalStyle.input}
+            placeholder="What's on your mind?"
+            value={postText}
+            onChangeText={setPostText}
+          />
+          <TouchableOpacity style={globalStyle.postButton} onPress={handlePost}>
+            <Icon name="paper-plane" size={20} color="#fff" />
+            <Text style={globalStyle.postButtonText}>Post</Text>
+          </TouchableOpacity>
         </View>
-      }
-        {/* Add more posts here */}
+        {data && data.length > 0 ? (
+          data.map((post, index) => {
+            return (
+              <View key={index}>
+                <Post postId={post.id} />
+              </View>
+            );
+          })
+        ) : (
+          <View style={globalStyle.center}>
+            <Icon name="exclamation-circle" size={24} color="#999" />
+            <Text style={globalStyle.text}>No Posts Found</Text>
+          </View>
+        )}
       </ScrollView>
       {isLoading && <LoadingScreen />}
     </View>
