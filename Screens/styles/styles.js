@@ -85,5 +85,14 @@ export const globalStyle = StyleSheet.create({
     actionText: {
       fontSize: 16,
     },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    text: {
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
   });
   

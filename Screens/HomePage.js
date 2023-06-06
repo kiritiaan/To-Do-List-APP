@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { addDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../Firebase';
+import { db, Auth } from '../Firebase';
 import Post from './Post';
 import  {globalStyle}  from './styles/styles';
 import LoadingScreen from './LoadingScreen';
 
-const Home = ({navigation, route}) => {
+const Home = ({navigation}) => {
   const [postText, setPostText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -21,8 +21,8 @@ const Home = ({navigation, route}) => {
       const docRef = await addDoc(collection(db, 'Posts'), {
         content: postText,
         sharedPost: false,
-        id: route.params.Id,
-        email: route.params.Email,
+        id: Auth.currentUser.uid,
+        email: Auth.currentUser.email,
         createdAt: now
       });
 
@@ -52,7 +52,7 @@ const Home = ({navigation, route}) => {
 
   useEffect( () => {
     getAllData();
-    console.log(data);
+    console.log(data.length)
   }, [])
 
 
@@ -77,9 +77,17 @@ const Home = ({navigation, route}) => {
           <Text style={globalStyle.postButtonText}>Post</Text>
         </TouchableOpacity>
       </View>
-      {data?.map((post, index) => {
-        return (<View key={index}><Post postId={post.id}/></View>)
-      })}
+      {
+        data && data.length > 0 ? (
+          
+        data?.map((post, index) => {
+          return (<View key={index}><Post postId={post.id}/></View>)
+        })
+        ): 
+        <View style={globalStyle.center}>
+          <Text style={globalStyle.text}>No Posts Found</Text>
+        </View>
+      }
         {/* Add more posts here */}
       </ScrollView>
       {isLoading && <LoadingScreen />}

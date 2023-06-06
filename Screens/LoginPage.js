@@ -49,7 +49,7 @@ export default function Login({ navigation }) {
   useEffect(() => {
     const unsubscribe = Auth.onAuthStateChanged((user) => {
       if (user) {
-        navigation.replace("Home", {Email: user.email, Id: user.uid});
+        navigation.replace("Home");
       }
     });
 
