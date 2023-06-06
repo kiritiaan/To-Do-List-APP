@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native';
 import { globalStyle } from './styles/styles';
 import { Auth } from '../Firebase';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Post = (props) => {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [showComments, setShowComments] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   const handleCommentChange = (text) => {
     setComment(text);
@@ -32,6 +34,10 @@ const Post = (props) => {
     setShowComments(!showComments);
   };
 
+  const toggleLike = () => {
+    setIsLiked(!isLiked);
+  }
+
   return (
     <View style={globalStyle.post}>
       <View style={globalStyle.postHeader}>
@@ -43,13 +49,16 @@ const Post = (props) => {
       </View>
       <Text style={globalStyle.postText}>Test Text</Text>
       <View style={globalStyle.actions}>
-        <TouchableOpacity style={globalStyle.actionButton}>
+        <TouchableOpacity style={globalStyle.actionButton} onPress={toggleLike}>
+          <Icon name="heart" size={20} color={isLiked ? 'red' : 'black'} />
           <Text style={globalStyle.actionText}>Like</Text>
         </TouchableOpacity>
         <TouchableOpacity style={globalStyle.actionButton} onPress={toggleComments}>
+          <Icon name="comment" size={20} color="black" />
           <Text style={globalStyle.actionText}>Comment</Text>
         </TouchableOpacity>
         <TouchableOpacity style={globalStyle.actionButton}>
+          <Icon name="share" size={20} color="black" />
           <Text style={globalStyle.actionText}>Share</Text>
         </TouchableOpacity>
       </View>
