@@ -11,12 +11,13 @@ export const globalStyle = StyleSheet.create({
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       marginBottom: 20,
     },
     logo: {
       width: 40,
       height: 40,
-      marginRight: 10,
+      marginLeft: 10,
     },
     title: {
       fontSize: 24,
@@ -93,6 +94,26 @@ export const globalStyle = StyleSheet.create({
     text: {
       fontSize: 20,
       fontWeight: 'bold',
+    },
+    headerButton: {
+      width: '50%',
+      alignItems: 'center',
+      margin: 8,
+      padding: 8,
+      borderRadius: 8,
+      borderColor: '#000',
+    },
+    selectedHeaderButton: {
+      backgroundColor: '#ccc',
+    },
+    headerButtonText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
   

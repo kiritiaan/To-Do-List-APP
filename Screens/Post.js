@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, TextInput,Alert, StyleSheet, TouchableWithoutFeedback, TouchableHighlightComponent, } from 'react-native';
 import { globalStyle } from './styles/styles';
 import { Auth, db } from '../Firebase';
-import { updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { updateDoc, doc, arrayUnion, arrayRemove , deleteDoc} from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Dialog from 'react-native-dialog';
+
 
 const Post = (props) => {
   const [comment, setComment] = useState('');
@@ -13,6 +15,8 @@ const Post = (props) => {
   const content = props.post.content;
   const email = props.post.email;
   const [likesCount, setLikesCount] = useState(props.post.likes?.length || 0);
+  const [isEditDialogVisible, setIsEditDialogVisible] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
   const handleCommentChange = (text) => {
     setComment(text);
@@ -23,6 +27,53 @@ const Post = (props) => {
     setIsLiked(props.post.likes?.includes(Auth.currentUser.email))
     setLikesCount(props.post.likes?.length || 0)
   }, [props]);
+
+  const handleLongPress = () => {
+    if (props.post.email === Auth.currentUser.email) {
+      Alert.alert(
+        'Post Options',
+        'Choose an option:',
+        [
+          { text: 'Edit', onPress: () => setIsEditDialogVisible(true) },
+          { text: 'Delete Post', onPress: deletePost, style: 'destructive' },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    } else {
+      Alert.alert('Can\'t Delete Post', 'You can only delete your own post.');
+    }
+  };
+  
+  const deletePost = async () => {
+    // Delete the post logic
+    // ...
+  
+    // Example implementation:
+    try {
+      // Delete the post from the database using the post UID
+      await deleteDoc(doc(db, "Posts", props.post.uid));
+      alert('Post deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting document: ', error);
+      alert('Error deleting post. Please try again later.');
+    }
+  };
+
+  const handleEditPost = async () => {
+    setIsEditDialogVisible(false);
+  
+    try {
+      // Update the post content in the database using the post UID
+      await updateDoc(doc(db, 'Posts', props.post.uid), {
+        content: editedContent,
+      });
+      alert('Post edited successfully.');
+    } catch (error) {
+      console.error('Error updating document: ', error);
+      alert('Error editing post. Please try again later.');
+    }
+  };
+  
 
   const submitComment = async () => {
 
@@ -55,7 +106,8 @@ const Post = (props) => {
 
 
   return (
-    <View style={globalStyle.post}>
+    <TouchableWithoutFeedback onLongPress={handleLongPress}>
+    <View style={globalStyle.post} >
       <View style={globalStyle.postHeader}>
         <Image
           source={require('../assets/icon.png')}
@@ -92,12 +144,28 @@ const Post = (props) => {
             value={comment}
             onChangeText={handleCommentChange}
           />
-          <TouchableOpacity style={styles.commentButton} onPress={submitComment}>
+          <TouchableOpacity style={[styles.commentButton,comment ==''? styles.disabled: styles.enabled]} disabled={comment === ''} onPress={submitComment}>
             <Text style={styles.commentButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
       )}
-    </View>
+
+      <Dialog.Container visible={isEditDialogVisible}>
+        <Dialog.Title>Edit Post</Dialog.Title>
+        <Dialog.Input
+          placeholder="Enter new content"
+          onChangeText={setEditedContent}
+        />
+        <Dialog.Button
+          label="Cancel"
+          onPress={() => setIsEditDialogVisible(false)}
+        />
+        <Dialog.Button
+          label="Save"
+          onPress={handleEditPost}
+        />
+      </Dialog.Container>
+    </View></TouchableWithoutFeedback>
   );
 };
 
@@ -132,10 +200,15 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   commentButton: {
-    backgroundColor: '#ccc',
     borderRadius: 5,
     paddingHorizontal: 10,
     paddingVertical: 8,
+  },
+  disabled: {
+    backgroundColor: '#ccc',
+  },
+  enabled: {
+    backgroundColor: '#000',
   },
   commentButtonText: {
     color: 'white',
