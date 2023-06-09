@@ -1,33 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native';
 import { globalStyle } from './styles/styles';
-import { Auth } from '../Firebase';
+import { Auth, db } from '../Firebase';
+import { updateDoc, doc, arrayUnion } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Post = (props) => {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [showComments, setShowComments] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(false || props.post.likes?.includes(Auth.currentUser.email));
+  const [content, setContent] = useState(props.post.content);
+  const [email, setEmail] = useState(props.post.email);
 
   const handleCommentChange = (text) => {
     setComment(text);
   };
 
-  const submitComment = () => {
-    
-    console.log(Auth.currentUser.email)
-    console.log(Auth.currentUser.uid)
-    if (comment.trim() !== '') {
-      const newComment = {
-        id: comments.length + 1,
-        email: 'example@example.com',
-        comment: comment.trim(),
-      };
+  useEffect( () => {
+    setComments(props.post.comments);
+    console.log(props.post.likes?.includes(Auth.currentUser.email))
+  }, []);
 
-      setComments([...comments, newComment]);
-      setComment('');
+  const submitComment = async () => {
+
+    try {
+      await updateDoc(doc(db, "Posts", props.post.uid), {
+        comments: arrayUnion({email: Auth.currentUser.email, comment: comment})
+      });
+
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      alert('Error adding the document. Please ensure you have an active internet connection and try again.');
     }
+
+
+    setComment('');
+    
   };
 
   const toggleComments = () => {
@@ -38,6 +47,7 @@ const Post = (props) => {
     setIsLiked(!isLiked);
   }
 
+
   return (
     <View style={globalStyle.post}>
       <View style={globalStyle.postHeader}>
@@ -45,9 +55,9 @@ const Post = (props) => {
           source={require('../assets/icon.png')}
           style={globalStyle.profileImage}
         />
-        <Text style={globalStyle.email}></Text>
+        <Text style={globalStyle.email}>{email}</Text>
       </View>
-      <Text style={globalStyle.postText}>Test Text</Text>
+      <Text style={globalStyle.postText}>{content}</Text>
       <View style={globalStyle.actions}>
         <TouchableOpacity style={globalStyle.actionButton} onPress={toggleLike}>
           <Icon name="heart" size={20} color={isLiked ? 'red' : 'black'} />
@@ -64,8 +74,8 @@ const Post = (props) => {
       </View>
       {showComments && (
         <View style={styles.commentsContainer}>
-          {comments.map((comment) => (
-            <View key={comment.id} style={styles.commentContainer}>
+          {comments.map((comment, index) => (
+            <View key={index} style={styles.commentContainer}>
               <Text style={styles.commentEmail}>{comment.email}</Text>
               <Text style={styles.commentText}>{comment.comment}</Text>
             </View>

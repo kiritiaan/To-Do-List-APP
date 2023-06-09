@@ -22,7 +22,6 @@ const Home = ({ navigation }) => {
       // Add data to Firestore with createdAt field
       const docRef = await addDoc(collection(db, 'Posts'), {
         content: postText,
-        sharedPost: false,
         id: Auth.currentUser.uid,
         email: Auth.currentUser.email,
         createdAt: now
@@ -46,7 +45,7 @@ const Home = ({ navigation }) => {
     onSnapshot( d, (data) => {
       let value = [];
       data.docs.forEach(element => {
-        value.push(element.id);
+        value.push({uid: element.id , ...element.data()});
       });
       setData(value);
     })
@@ -54,7 +53,6 @@ const Home = ({ navigation }) => {
 
   useEffect( () => {
     getAllData();
-    console.log(data.length)
   }, [])
 
 
@@ -79,9 +77,10 @@ const Home = ({ navigation }) => {
         </View>
         {data && data.length > 0 ? (
           data.map((post, index) => {
+            console.log(post)
             return (
               <View key={index}>
-                <Post postId={post.id} />
+                <Post post={post} />
               </View>
             );
           })
