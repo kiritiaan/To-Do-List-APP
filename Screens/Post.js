@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native';
 import { globalStyle } from './styles/styles';
 import { Auth, db } from '../Firebase';
-import { updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Post = (props) => {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(false || props.post.comments?.length != 0);
   const [isLiked, setIsLiked] = useState(false || props.post.likes?.includes(Auth.currentUser.email));
-  const [content, setContent] = useState(props.post.content);
-  const [email, setEmail] = useState(props.post.email);
+  const content = props.post.content;
+  const email = props.post.email;
+  const [likesCount, setLikesCount] = useState(props.post.likes?.length || 0);
 
   const handleCommentChange = (text) => {
     setComment(text);
@@ -19,8 +20,9 @@ const Post = (props) => {
 
   useEffect( () => {
     setComments(props.post.comments);
-    console.log(props.post.likes?.includes(Auth.currentUser.email))
-  }, []);
+    setIsLiked(props.post.likes?.includes(Auth.currentUser.email))
+    setLikesCount(props.post.likes?.length || 0)
+  }, [props]);
 
   const submitComment = async () => {
 
@@ -31,7 +33,7 @@ const Post = (props) => {
 
     } catch (error) {
       console.error('Error adding document: ', error);
-      alert('Error adding the document. Please ensure you have an active internet connection and try again.');
+      alert('Error commenting. Please ensure you have an active internet connection and try again.');
     }
 
 
@@ -43,8 +45,12 @@ const Post = (props) => {
     setShowComments(!showComments);
   };
 
-  const toggleLike = () => {
-    setIsLiked(!isLiked);
+  const toggleLike = async () => {
+
+    await updateDoc(doc(db, "Posts", props.post.uid), {
+      likes: isLiked? arrayRemove(Auth.currentUser.email) : arrayUnion(Auth.currentUser.email),
+    });
+
   }
 
 
@@ -61,20 +67,16 @@ const Post = (props) => {
       <View style={globalStyle.actions}>
         <TouchableOpacity style={globalStyle.actionButton} onPress={toggleLike}>
           <Icon name="heart" size={20} color={isLiked ? 'red' : 'black'} />
-          <Text style={globalStyle.actionText}>Like</Text>
+    <Text style={globalStyle.actionText}>{`${likesCount} ${likesCount <= 1 ? 'Like' : 'Likes'}`}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={globalStyle.actionButton} onPress={toggleComments}>
           <Icon name="comment" size={20} color="black" />
           <Text style={globalStyle.actionText}>Comment</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={globalStyle.actionButton}>
-          <Icon name="share" size={20} color="black" />
-          <Text style={globalStyle.actionText}>Share</Text>
-        </TouchableOpacity>
       </View>
       {showComments && (
         <View style={styles.commentsContainer}>
-          {comments.map((comment, index) => (
+          {comments?.map((comment, index) => (
             <View key={index} style={styles.commentContainer}>
               <Text style={styles.commentEmail}>{comment.email}</Text>
               <Text style={styles.commentText}>{comment.comment}</Text>

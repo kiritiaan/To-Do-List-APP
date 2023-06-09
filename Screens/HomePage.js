@@ -24,10 +24,10 @@ const Home = ({ navigation }) => {
         content: postText,
         id: Auth.currentUser.uid,
         email: Auth.currentUser.email,
+        likes: [],
+        comments: [],
         createdAt: now
       });
-
-      alert("Post Successful!");
 
     } catch (error) {
       console.error('Error adding document: ', error);
